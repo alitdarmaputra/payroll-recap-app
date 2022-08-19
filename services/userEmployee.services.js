@@ -49,8 +49,17 @@ const listEmployee = async (queries) => {
   return result;
 };
 
+const showEmployee = async (id) => {
+  const result = await user_employee.findOne({
+    where: { id },
+  });
+
+  return result;
+};
+
 module.exports = {
   createEmployee,
   editEmployee,
   listEmployee,
+  showEmployee,
 };
