@@ -10,4 +10,6 @@ router.put("/:id", employeeController.editedEmployee);
 router.get("/", employeeController.listEmployee);
 router.get("/:id", employeeController.showEmployee);
 
+router.delete("/:id", employeeController.deleteEmployee);
+
 module.exports = router;

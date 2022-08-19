@@ -75,9 +75,28 @@ const showEmployee = async (req, res) => {
   }
 };
 
+const deleteEmployee = async (req, res) => {
+  try {
+    const deleteEmployee = await userEmployee.deleteEmployee(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Success delete employee",
+      data: deleteEmployee,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+      data: null,
+    });
+  }
+};
+
 module.exports = {
   createNewEmployee,
   editedEmployee,
   listEmployee,
   showEmployee,
+  deleteEmployee
 };
