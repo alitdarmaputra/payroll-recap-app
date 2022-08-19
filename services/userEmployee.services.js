@@ -1,6 +1,4 @@
-const Sequelize = require("sequelize");
 const { user_employee } = require("../models");
-const { Op } = Sequelize;
 
 const createEmployee = async ({ full_name, email, salary }) => {
   const payload = {
