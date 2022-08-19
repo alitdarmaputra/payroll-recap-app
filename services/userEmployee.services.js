@@ -15,6 +15,19 @@ const createEmployee = async ({ full_name, email, salary }) => {
   return result;
 };
 
+const editEmployee = async ({ full_name, email, salary }, id) => {
+  const payload = {
+    full_name,
+    email,
+    updated_date: new Date(),
+    salary: parseInt(salary, 10),
+  };
+
+  const result = await user_employee.update(payload, { where: { id } });
+  return result;
+};
+
 module.exports = {
   createEmployee,
+  editEmployee,
 };

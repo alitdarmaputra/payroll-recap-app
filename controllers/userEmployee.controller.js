@@ -18,6 +18,28 @@ const createNewEmployee = async (req, res) => {
   }
 };
 
+const editedEmployee = async (req, res) => {
+  try {
+    const editedEmployee = await userEmployee.editEmployee(
+      req.body,
+      req.params.id
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Success edited employee",
+      data: editedEmployee,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+      data: null,
+    });
+  }
+};
+
 module.exports = {
   createNewEmployee,
+  editedEmployee,
 };
