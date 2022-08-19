@@ -7,4 +7,6 @@ router.post("/", employeeController.createNewEmployee);
 
 router.put("/:id", employeeController.editedEmployee);
 
+router.get("/", employeeController.listEmployee);
+
 module.exports = router;

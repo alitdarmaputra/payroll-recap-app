@@ -39,7 +39,26 @@ const editedEmployee = async (req, res) => {
   }
 };
 
+const listEmployee = async (req, res) => {
+  try {
+    const showEmployee = await userEmployee.listEmployee(req.query);
+
+    res.status(200).json({
+      success: true,
+      message: "Success get list employee",
+      data: showEmployee,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+      data: null,
+    });
+  }
+};
+
 module.exports = {
   createNewEmployee,
   editedEmployee,
+  listEmployee,
 };

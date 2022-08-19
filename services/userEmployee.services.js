@@ -1,4 +1,6 @@
+const Sequelize = require("sequelize");
 const { user_employee } = require("../models");
+const { Op } = Sequelize;
 
 const createEmployee = async ({ full_name, email, salary }) => {
   const payload = {
@@ -27,7 +29,28 @@ const editEmployee = async ({ full_name, email, salary }, id) => {
   return result;
 };
 
+const listEmployee = async (queries) => {
+  const condition = {};
+
+  Object.keys(queries).forEach((query) => {
+    condition[query] = { [Op.like]: `%${queries[query]}%` };
+  });
+
+  const listed = await user_employee.findAndCountAll({
+    where: condition,
+    order: [["full_name", "ASC"]],
+  });
+
+  const result = {
+    list: listed.rows,
+    total: listed.count,
+  };
+
+  return result;
+};
+
 module.exports = {
   createEmployee,
   editEmployee,
+  listEmployee,
 };
