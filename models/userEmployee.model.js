@@ -27,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
         values: ["ACTIVE", "DELETED"],
       },
       salary: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.DECIMAL,
       },
     },
     {
