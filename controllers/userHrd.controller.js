@@ -5,29 +5,19 @@ const addHrd = async(req, res) => {
 	const user_hrd = req.body;
 
 	try {
-		user_hrd.password = await bcrypt.hash(user_hrd.password, 12);
-		try {
-			const added_hrd = await HrdServices.addHrd(user_hrd);
+		const added_hrd = await HrdServices.addHrd(user_hrd);
 
-			res.status(201).json({ 
-				statusCode: 201,
-				success: true,
-				message: "Success added hrd",
-				data: added_hrd
-			});
-		} catch(err) {
-			res.status(500).json({ 
-				statusCode: 500,
-				success: false,
-				message: err.message,
-				data: null
-			});
-		}
+		res.status(201).json({ 
+			statusCode: 201,
+			success: true,
+			message: "Success added hrd",
+			data: added_hrd
+		});
 	} catch(err) {
-		res.status(500).json({
+		res.status(500).json({ 
 			statusCode: 500,
 			success: false,
-			message: err,
+			message: err.message,
 			data: null
 		});
 	}
