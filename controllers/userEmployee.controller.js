@@ -1,6 +1,6 @@
 const userEmployee = require("../services/userEmployee.services");
 
-const createNewEmployee = async (req, res) => {
+const createNewEmployee = async (req, res, next) => {
   try {
     const newEmployee = await userEmployee.createEmployee(req.body);
 
@@ -11,16 +11,11 @@ const createNewEmployee = async (req, res) => {
       data: newEmployee,
     });
   } catch (err) {
-    return res.status(500).json({
-      statusCode: 500,
-      success: false,
-      message: err.message,
-      data: null,
-    });
+    return next(err);
   }
 };
 
-const editedEmployee = async (req, res) => {
+const editedEmployee = async (req, res, next) => {
   try {
     const editedEmployee = await userEmployee.editEmployee(
       req.body,
@@ -34,16 +29,11 @@ const editedEmployee = async (req, res) => {
       data: editedEmployee,
     });
   } catch (err) {
-    return res.status(500).json({
-      statusCode: 500,
-      success: false,
-      message: err.message,
-      data: null,
-    });
+    return next(err);
   }
 };
 
-const listEmployee = async (req, res) => {
+const listEmployee = async (req, res, next) => {
   try {
     const showEmployee = await userEmployee.listEmployee(req.query);
 
@@ -54,16 +44,11 @@ const listEmployee = async (req, res) => {
       data: showEmployee,
     });
   } catch (err) {
-    return res.status(500).json({
-      statusCode: 500,
-      success: false,
-      message: err.message,
-      data: null,
-    });
+    return next(err);
   }
 };
 
-const showEmployee = async (req, res) => {
+const showEmployee = async (req, res, next) => {
   try {
     const showEmployee = await userEmployee.showEmployee(req.params.id);
 
@@ -74,16 +59,11 @@ const showEmployee = async (req, res) => {
       data: showEmployee,
     });
   } catch (err) {
-    return res.status(500).json({
-      statusCode: 500,
-      success: false,
-      message: err.message,
-      data: null,
-    });
+    return next(err);
   }
 };
 
-const deleteEmployee = async (req, res) => {
+const deleteEmployee = async (req, res, next) => {
   try {
     const deleteEmployee = await userEmployee.deleteEmployee(req.params.id);
 
@@ -94,12 +74,7 @@ const deleteEmployee = async (req, res) => {
       data: deleteEmployee,
     });
   } catch (err) {
-    return res.status(500).json({
-      statusCode: 500,
-      success: false,
-      message: err.message,
-      data: null,
-    });
+    return next(err);
   }
 };
 
