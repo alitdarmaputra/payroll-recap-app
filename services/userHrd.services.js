@@ -1,9 +1,16 @@
 const Sequelize = require("sequelize");
 const { user_hrd } = require("../models");
 const { Op } = Sequelize;
+const bcrypt = require("bcrypt");
 
 const addHrd = async({ username, full_name, email, password }) => {
-    const payload = {
+	try {
+		password = await bcrypt.hash(password, 12); 
+	} catch(err) {
+		throw Error("Error while adding user_hrd");	
+	}
+
+	const payload = {
         username,
         full_name,
         email,
@@ -11,6 +18,7 @@ const addHrd = async({ username, full_name, email, password }) => {
         created_date: new Date(),
         updated_date: new Date(),
     }
+
 	try {
 		const new_hrd = await user_hrd.create(payload);	
 		return new_hrd;
