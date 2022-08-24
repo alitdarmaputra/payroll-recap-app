@@ -1,29 +1,20 @@
 const HrdServices = require("../services/userHrd.services");
-const bcrypt = require("bcrypt");
 
-const addHrd = async(req, res) => {
-	const user_hrd = req.body;
-
+const addHrd = async(req, res, next) => {
 	try {
-		const added_hrd = await HrdServices.addHrd(user_hrd);
-
+		const added_hrd = await HrdServices.addHrd(req.body);
 		res.status(201).json({ 
 			statusCode: 201,
 			success: true,
-			message: "Success added hrd",
+			message: "Success created hrd",
 			data: added_hrd
 		});
 	} catch(err) {
-		res.status(500).json({ 
-			statusCode: 500,
-			success: false,
-			message: err.message,
-			data: null
-		});
+		return next(err);	
 	}
 }
 
-const deleteHrd = async(req, res) => {
+const deleteHrd = async(req, res, next) => {
 	try {
 		await HrdServices.deleteHrd(req.params.id);
 		res.status(200).json({ 
@@ -33,16 +24,11 @@ const deleteHrd = async(req, res) => {
 			data: null
 		});
 	} catch(err) {
-		res.status(500).json({
-			statusCode: 500,
-			success: false,
-			message: err.message,
-			data: null
-		});
+		return next(err);	
 	}
 }
 
-const editHrd = async(req, res) => {
+const editHrd = async(req, res, next) => {
 	try {
 		await HrdServices.editHrd(req.body, req.params.id);
 		res.status(200).json({
@@ -52,16 +38,11 @@ const editHrd = async(req, res) => {
 			data: null
 		});
 	} catch(err) {
-		res.status(500).json({
-			statusCode: 500,
-			success: false,
-			message: err.message,
-			data: null
-		});
+		return next(err);
 	}
 }
 
-const getHrd = async(req, res) => {
+const getHrd = async(req, res, next) => {
 	try {
 		const user_hrd = await HrdServices.getHrd(req.params.id);
 		res.status(200).json({
@@ -71,16 +52,11 @@ const getHrd = async(req, res) => {
 			data: user_hrd
 		});
 	} catch(err) {
-		res.status(500).json({
-			statusCode: 500,
-			success: false,
-			message: err.message,
-			data: null
-		});
+		return next(err);
 	}
 }
 	
-const listHrd = async(req, res) => {
+const listHrd = async(req, res, next) => {
 	try {
 		const users_hrd = await HrdServices.listHrd(req.query);
 		res.status(200).json({
@@ -90,12 +66,7 @@ const listHrd = async(req, res) => {
 			data: users_hrd
 		});
 	} catch(err) {
-		res.status(500).json({
-			statusCode: 500,
-			success: false,
-			message: err.message,
-			data: null
-		});
+		return next(err);
 	}
 } 
 

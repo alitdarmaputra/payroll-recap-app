@@ -2,14 +2,17 @@ const Sequelize = require("sequelize");
 const { user_hrd } = require("../models");
 const { Op } = Sequelize;
 const bcrypt = require("bcrypt");
+const ValidationError = require("../errors/ValidationError");
+const NotFoundError = require("../errors/NotFoundError");
 
 const addHrd = async({ username, full_name, email, password }) => {
-	try {
-		password = await bcrypt.hash(password, 12); 
-	} catch(err) {
-		throw Error("Error while adding user_hrd");	
-	}
+	if(typeof password == "string") {
+		if(password.length < 6)
+			throw new ValidationError("password value min 6");
 
+		password = await bcrypt.hash(password, 12); 
+	}
+	
 	const payload = {
         username,
         full_name,
@@ -25,16 +28,21 @@ const addHrd = async({ username, full_name, email, password }) => {
 	} catch(err) {
 		console.log(err);
 		const errors = err.errors;
-		let validation_error = errors.map(error => {
-			if(error.type == "unique violation") {
-				return `This ${error.path} already used, try with another ${error.path}`; 
-			} else if(error.type == "notNull Violation") {
-				return `Plese provide ${error.path}`;	
-			} else {
-				return "Error while adding user_hrd"
-			}
+		errors.forEach(error => {
+			if (error.type == "unique violation") {
+				throw new ValidationError(
+					`This ${error.path} already used, try with another ${error.path}`
+				);
+			} else if (error.type == "notNull Violation") {
+				throw new ValidationError(`Plese provide ${error.path}`);
+			} else if (error.path == "email") {
+				throw new ValidationError("Email must be valid");
+			} else if (error.path == "full_name") {
+				throw new ValidationError("Full name value min 5");
+			} else if (error.path == "username") {
+				throw new ValidationError("username value min 5");
+			} 
 		});
-		throw Error(validation_error);
 	}
 }
 
@@ -43,40 +51,58 @@ const deleteHrd = async(id) => {
         status: "DELETED", 
         updated_date: new Date()
     }
-	try {
-		await user_hrd.update(payload, {
-			where: { id }
-		});
-		return;
-	} catch(err) {
-		console.log(err);
-		throw Error("Error while deleting user_hrd");
-	}
+
+	const hrd = await user_hrd.findByPk(id);
+
+	if (!hrd) 
+	  throw new NotFoundError("Hrd not found");
+
+	await user_hrd.update(payload, {
+		where: { id }
+	});
 }
 
 const editHrd = async(data_hrd, id) => {
+	const hrd = await user_hrd.findByPk(id);
+
+	if (!hrd)
+		throw new NotFoundError("Hrd not found");
+
 	try {
         data_hrd.updated_date = new Date();
 		await user_hrd.update(data_hrd, {
 			where: { id }
 		});
-		return;
 	} catch(err) {
 		console.log(err);
-		throw Error("Error while editing user_hrd");
+		const errors = err.errors;
+		errors.forEach((error) => {
+			if (error.type == "unique violation") {
+				throw new ValidationError(
+					`This ${error.path} already used, try with another ${error.path}`
+				);
+			} else if (error.type == "notNull Violation") {
+				throw new ValidationError(`Plese provide ${error.path}`);
+			} else if (error.path == "email") {
+				throw new ValidationError("Email must be valid");
+			} else if (error.path == "full_name") {
+				throw new ValidationError("Full name value min 5");
+			} else if (error.path == "username") {
+				throw new ValidationError("username value min 5");
+			}
+		});	
 	}
 }
 
 const getHrd = async(id) => {
-	try {
-		const detail_hrd = await user_hrd.findAll({
-			where: { id }
-		});
-		return detail_hrd;
-	} catch(err) {
-		console.log(err);
-		throw Error("Error while getting user_hrd");
-	}
+	const detail_hrd = await user_hrd.findOne({
+		where: { id }
+	});
+
+	if(!detail_hrd)
+		throw new NotFoundError("Hrd not found");
+
+	return detail_hrd;
 }
 
 const listHrd = async(queries) => {
@@ -85,17 +111,12 @@ const listHrd = async(queries) => {
 	if (full_name)
 		conditions.full_name = { [Op.like]: `%${full_name}%` };
 
-	try {
-		const hrd_list = await user_hrd.findAll({
-			where: conditions,
-			limit: isNaN(limit)? undefined : parseInt(limit, 10),
-			offset: isNaN(offset)? undefined : parseInt(offset, 10)
-		});
-		return { results: hrd_list, totalResults: hrd_list.length };
-	} catch(err) {
-		console.log(err);
-		throw Error("Error while listing user_hrd");
-	}
+	const hrd_list = await user_hrd.findAll({
+		where: conditions,
+		limit: isNaN(limit)? undefined : parseInt(limit, 10),
+		offset: isNaN(offset)? undefined : parseInt(offset, 10)
+	});
+	return { results: hrd_list, totalResults: hrd_list.length };
 }
 
 module.exports = { addHrd, deleteHrd, editHrd, getHrd, listHrd };
