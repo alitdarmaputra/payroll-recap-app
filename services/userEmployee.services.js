@@ -1,5 +1,7 @@
 const Sequelize = require("sequelize");
 const { user_employee } = require("../models");
+const ValidationError = require("../errors/ValidationError");
+const NotFoundError = require("../errors/NotFoundError");
 const { Op } = Sequelize;
 
 const createEmployee = async ({ full_name, email, salary }) => {
@@ -12,9 +14,26 @@ const createEmployee = async ({ full_name, email, salary }) => {
     salary: parseInt(salary, 10),
   };
 
-  const result = await user_employee.create(payload);
-
-  return result;
+  try {
+    const result = await user_employee.create(payload);
+    return result;
+  } catch (err) {
+    console.log(err);
+    const errors = err.errors;
+    errors.map((error) => {
+      if (error.type == "unique violation") {
+        throw new ValidationError(
+          `This ${error.path} already used, try with another ${error.path}`
+        );
+      } else if (error.type == "notNull Violation") {
+        throw new ValidationError(`Plese provide ${error.path}`);
+      } else if (error.path === "email") {
+        throw new ValidationError("Email must be valid");
+      } else if (error.path === "full_name") {
+        throw new ValidationError("Full name value min 5");
+      }
+    });
+  }
 };
 
 const editEmployee = async ({ full_name, email, salary }, id) => {
@@ -25,8 +44,31 @@ const editEmployee = async ({ full_name, email, salary }, id) => {
     salary: parseInt(salary, 10),
   };
 
-  const result = await user_employee.update(payload, { where: { id } });
-  return result;
+  try {
+    const employee = await user_employee.findByPk(id);
+    if (!employee) {
+      throw new NotFoundError("Employee not found");
+    }
+
+    const result = await user_employee.update(payload, { where: { id } });
+    return result;
+  } catch (err) {
+    console.log(err);
+    const errors = err.errors;
+    errors.map((error) => {
+      if (error.type == "unique violation") {
+        throw new ValidationError(
+          `This ${error.path} already used, try with another ${error.path}`
+        );
+      } else if (error.type == "notNull Violation") {
+        throw new ValidationError(`Plese provide ${error.path}`);
+      } else if (error.path === "email") {
+        throw new ValidationError("Email must be valid");
+      } else if (error.path === "full_name") {
+        throw new ValidationError("Full name value min 5");
+      }
+    });
+  }
 };
 
 const listEmployee = async (queries) => {
@@ -54,10 +96,19 @@ const showEmployee = async (id) => {
     where: { id },
   });
 
+  if (!result) {
+    throw new NotFoundError("Employee not found");
+  }
+
   return result;
 };
 
 const deleteEmployee = async (id) => {
+  const employee = await user_employee.findByPk(id);
+  if (!employee) {
+    throw new NotFoundError("Employee not found");
+  }
+
   const result = await user_employee.update(
     {
       status: "DELETED",

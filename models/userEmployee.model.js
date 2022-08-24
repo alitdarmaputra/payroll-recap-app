@@ -10,9 +10,16 @@ module.exports = (sequelize, DataTypes) => {
       },
       full_name: {
         type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          len: [4, 30],
+        },
       },
       email: {
         type: DataTypes.STRING,
+        unique: true,
+        allowNull: false,
+        validate: { isEmail: true },
       },
       created_date: {
         type: DataTypes.DATE,

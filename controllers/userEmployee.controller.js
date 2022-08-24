@@ -1,24 +1,21 @@
 const userEmployee = require("../services/userEmployee.services");
 
-const createNewEmployee = async (req, res) => {
+const createNewEmployee = async (req, res, next) => {
   try {
     const newEmployee = await userEmployee.createEmployee(req.body);
 
     res.status(201).json({
+      statusCode: 201,
       success: true,
       message: "Success created employee",
       data: newEmployee,
     });
   } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: err.message,
-      data: null,
-    });
+    return next(err);
   }
 };
 
-const editedEmployee = async (req, res) => {
+const editedEmployee = async (req, res, next) => {
   try {
     const editedEmployee = await userEmployee.editEmployee(
       req.body,
@@ -26,70 +23,58 @@ const editedEmployee = async (req, res) => {
     );
 
     res.status(200).json({
+      statusCode: 200,
       success: true,
       message: "Success edited employee",
       data: editedEmployee,
     });
   } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: err.message,
-      data: null,
-    });
+    return next(err);
   }
 };
 
-const listEmployee = async (req, res) => {
+const listEmployee = async (req, res, next) => {
   try {
     const showEmployee = await userEmployee.listEmployee(req.query);
 
     res.status(200).json({
+      statusCode: 200,
       success: true,
       message: "Success get list employee",
       data: showEmployee,
     });
   } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: err.message,
-      data: null,
-    });
+    return next(err);
   }
 };
 
-const showEmployee = async (req, res) => {
+const showEmployee = async (req, res, next) => {
   try {
     const showEmployee = await userEmployee.showEmployee(req.params.id);
 
     res.status(200).json({
+      statusCode: 200,
       success: true,
       message: "Success get employee",
       data: showEmployee,
     });
   } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: err.message,
-      data: null,
-    });
+    return next(err);
   }
 };
 
-const deleteEmployee = async (req, res) => {
+const deleteEmployee = async (req, res, next) => {
   try {
     const deleteEmployee = await userEmployee.deleteEmployee(req.params.id);
 
     res.status(200).json({
+      statusCode: 200,
       success: true,
       message: "Success delete employee",
       data: deleteEmployee,
     });
   } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: err.message,
-      data: null,
-    });
+    return next(err);
   }
 };
 
@@ -98,5 +83,5 @@ module.exports = {
   editedEmployee,
   listEmployee,
   showEmployee,
-  deleteEmployee
+  deleteEmployee,
 };
