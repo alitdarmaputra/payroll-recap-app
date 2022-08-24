@@ -107,7 +107,7 @@ const getHrd = async(id) => {
 
 const listHrd = async(queries) => {
 	const default_page = 10;
-	const { page = 0, size = default_page, full_name, ...conditions } = queries;
+	const { page = 1, size = default_page, full_name, ...conditions } = queries;
 	
 	if (full_name)
 		conditions.full_name = { [Op.like]: `%${full_name}%` };
