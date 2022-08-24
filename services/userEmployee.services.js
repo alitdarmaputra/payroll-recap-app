@@ -2,6 +2,7 @@ const Sequelize = require("sequelize");
 const { user_employee } = require("../models");
 const ValidationError = require("../errors/ValidationError");
 const NotFoundError = require("../errors/NotFoundError");
+const ConflictError = require("../errors/ConflictError");
 const { Op } = Sequelize;
 
 const createEmployee = async ({ full_name, email, salary }) => {
@@ -18,11 +19,10 @@ const createEmployee = async ({ full_name, email, salary }) => {
     const result = await user_employee.create(payload);
     return result;
   } catch (err) {
-    console.log(err);
     const errors = err.errors;
     errors.map((error) => {
       if (error.type == "unique violation") {
-        throw new ValidationError(
+        throw new ConflictError(
           `This ${error.path} already used, try with another ${error.path}`
         );
       } else if (error.type == "notNull Violation") {
@@ -36,8 +36,9 @@ const createEmployee = async ({ full_name, email, salary }) => {
   }
 };
 
-const editEmployee = async ({ full_name, email, salary }, id) => {
+const editEmployee = async ({ full_name, email, salary, id }) => {
   const payload = {
+    id, 
     full_name,
     email,
     updated_date: new Date(),
@@ -50,10 +51,9 @@ const editEmployee = async ({ full_name, email, salary }, id) => {
       throw new NotFoundError("Employee not found");
     }
 
-    const result = await user_employee.update(payload, { where: { id } });
-    return result;
+    await user_employee.update(payload, { where: { id } });
+    return payload;
   } catch (err) {
-    console.log(err);
     const errors = err.errors;
     errors.map((error) => {
       if (error.type == "unique violation") {
@@ -71,7 +71,9 @@ const editEmployee = async ({ full_name, email, salary }, id) => {
   }
 };
 
-const listEmployee = async (queries) => {
+const listEmployee = async (queries, { page, perPage }) => {
+  perPage = parseInt(perPage, 10);
+  page = parseInt(page, 10);
   const condition = {};
 
   Object.keys(queries).forEach((query) => {
@@ -81,11 +83,16 @@ const listEmployee = async (queries) => {
   const listed = await user_employee.findAndCountAll({
     where: condition,
     order: [["full_name", "ASC"]],
+    distinct: true,
+    limit: perPage,
+    offset: perPage * (page - 1),
   });
 
   const result = {
-    list: listed.rows,
-    total: listed.count,
+    totalData: listed.count,
+    totalPages: Math.ceil(listed.count / perPage),
+    content: listed.rows,
+    currentPage: page,
   };
 
   return result;

@@ -1,10 +1,9 @@
 const ClientError = require("./ClientError");
 
 class ValidationError extends ClientError {
-  constructor(message, errors) {
-    super(message, 400);
+  constructor(message) {
+    super(message);
     this.name = "ValidationError";
-    this.errors = errors;
   }
 }
 

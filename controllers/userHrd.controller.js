@@ -44,7 +44,7 @@ const deleteHrd = async(req, res) => {
 
 const editHrd = async(req, res) => {
 	try {
-		await HrdServices.editHrd(req.body, req.params.id);
+		await HrdServices.editHrd(req.body);
 		res.status(200).json({
 			statusCode: 200,
 			success: true,
