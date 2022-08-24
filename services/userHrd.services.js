@@ -106,17 +106,26 @@ const getHrd = async(id) => {
 }
 
 const listHrd = async(queries) => {
-	const { limit, offset, full_name, ...conditions } = queries;
+	const default_page = 10;
+	const { page = 0, size = default_page, full_name, ...conditions } = queries;
 	
 	if (full_name)
 		conditions.full_name = { [Op.like]: `%${full_name}%` };
+	
+	const all_hrd = await user_hrd.findAll();
 
 	const hrd_list = await user_hrd.findAll({
 		where: conditions,
-		limit: isNaN(limit)? undefined : parseInt(limit, 10),
-		offset: isNaN(offset)? undefined : parseInt(offset, 10)
+		limit: isNaN(size)? default_page : parseInt(size, 10),
+		offset: isNaN(page)? 0 : parseInt((page-1) * default_page, 10)
 	});
-	return { results: hrd_list, totalResults: hrd_list.length };
+
+	return { 
+		totalData: hrd_list.length,
+		totalPages: Math.ceil(all_hrd.length/default_page), 
+		content: hrd_list,
+		currentPage: isNaN(page)? 1 : page,
+	};
 }
 
 module.exports = { addHrd, deleteHrd, editHrd, getHrd, listHrd };
