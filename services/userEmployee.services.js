@@ -36,8 +36,9 @@ const createEmployee = async ({ full_name, email, salary }) => {
   }
 };
 
-const editEmployee = async ({ full_name, email, salary }, id) => {
+const editEmployee = async ({ full_name, email, salary, id }) => {
   const payload = {
+    id, 
     full_name,
     email,
     updated_date: new Date(),
@@ -50,8 +51,8 @@ const editEmployee = async ({ full_name, email, salary }, id) => {
       throw new NotFoundError("Employee not found");
     }
 
-    const result = await user_employee.update(payload, { where: { id } });
-    return result;
+    await user_employee.update(payload, { where: { id } });
+    return payload;
   } catch (err) {
     const errors = err.errors;
     errors.map((error) => {
