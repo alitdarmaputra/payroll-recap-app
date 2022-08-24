@@ -2,6 +2,7 @@ const Sequelize = require("sequelize");
 const { user_employee } = require("../models");
 const ValidationError = require("../errors/ValidationError");
 const NotFoundError = require("../errors/NotFoundError");
+const ConflictError = require("../errors/ConflictError");
 const { Op } = Sequelize;
 
 const createEmployee = async ({ full_name, email, salary }) => {
@@ -18,11 +19,10 @@ const createEmployee = async ({ full_name, email, salary }) => {
     const result = await user_employee.create(payload);
     return result;
   } catch (err) {
-    console.log(err);
     const errors = err.errors;
     errors.map((error) => {
       if (error.type == "unique violation") {
-        throw new ValidationError(
+        throw new ConflictError(
           `This ${error.path} already used, try with another ${error.path}`
         );
       } else if (error.type == "notNull Violation") {
@@ -53,7 +53,6 @@ const editEmployee = async ({ full_name, email, salary }, id) => {
     const result = await user_employee.update(payload, { where: { id } });
     return result;
   } catch (err) {
-    console.log(err);
     const errors = err.errors;
     errors.map((error) => {
       if (error.type == "unique violation") {
