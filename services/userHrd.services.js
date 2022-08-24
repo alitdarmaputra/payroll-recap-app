@@ -62,8 +62,8 @@ const deleteHrd = async(id) => {
 	});
 }
 
-const editHrd = async(data_hrd, id) => {
-	const hrd = await user_hrd.findByPk(id);
+const editHrd = async(data_hrd) => {
+	const hrd = await user_hrd.findByPk(data_hrd.id);
 
 	if (!hrd)
 		throw new NotFoundError("Hrd not found");
@@ -71,7 +71,7 @@ const editHrd = async(data_hrd, id) => {
 	try {
         data_hrd.updated_date = new Date();
 		await user_hrd.update(data_hrd, {
-			where: { id }
+			where: { id: data_hrd.id }
 		});
 	} catch(err) {
 		console.log(err);
