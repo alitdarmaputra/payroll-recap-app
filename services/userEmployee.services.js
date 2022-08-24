@@ -70,7 +70,9 @@ const editEmployee = async ({ full_name, email, salary }, id) => {
   }
 };
 
-const listEmployee = async (queries) => {
+const listEmployee = async (queries, { page, perPage }) => {
+  perPage = parseInt(perPage, 10);
+  page = parseInt(page, 10);
   const condition = {};
 
   Object.keys(queries).forEach((query) => {
@@ -80,11 +82,16 @@ const listEmployee = async (queries) => {
   const listed = await user_employee.findAndCountAll({
     where: condition,
     order: [["full_name", "ASC"]],
+    distinct: true,
+    limit: perPage,
+    offset: perPage * (page - 1),
   });
 
   const result = {
-    list: listed.rows,
-    total: listed.count,
+    totalData: listed.count,
+    totalPages: Math.ceil(listed.count / perPage),
+    content: listed.rows,
+    currentPage: page,
   };
 
   return result;

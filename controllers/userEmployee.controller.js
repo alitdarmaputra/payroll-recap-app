@@ -35,7 +35,12 @@ const editedEmployee = async (req, res, next) => {
 
 const listEmployee = async (req, res, next) => {
   try {
-    const showEmployee = await userEmployee.listEmployee(req.query);
+    const { page = 1, perPage = 10, ...queries } = req.query;
+
+    const showEmployee = await userEmployee.listEmployee(queries, {
+      page,
+      perPage,
+    });
 
     res.status(200).json({
       statusCode: 200,
