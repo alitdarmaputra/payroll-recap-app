@@ -38,19 +38,19 @@ const createEmployee = async ({ full_name, email, salary }) => {
 
 const editEmployee = async ({ full_name, email, salary, id }) => {
   const payload = {
-    id, 
+    id,
     full_name,
     email,
     updated_date: new Date(),
     salary: parseInt(salary, 10),
   };
 
-  try {
-    const employee = await user_employee.findByPk(id);
-    if (!employee) {
-      throw new NotFoundError("Employee not found");
-    }
+  const employee = await user_employee.findByPk(id);
+  if (!employee) {
+    throw new NotFoundError("Employee not found");
+  }
 
+  try {
     await user_employee.update(payload, { where: { id } });
     return payload;
   } catch (err) {
@@ -71,8 +71,8 @@ const editEmployee = async ({ full_name, email, salary, id }) => {
   }
 };
 
-const listEmployee = async (queries, { page, perPage }) => {
-  perPage = parseInt(perPage, 10);
+const listEmployee = async (queries, { page, size }) => {
+  size = parseInt(size, 10);
   page = parseInt(page, 10);
   const condition = {};
 
@@ -84,13 +84,13 @@ const listEmployee = async (queries, { page, perPage }) => {
     where: condition,
     order: [["full_name", "ASC"]],
     distinct: true,
-    limit: perPage,
-    offset: perPage * (page - 1),
+    limit: size,
+    offset: size * (page - 1),
   });
 
   const result = {
     totalData: listed.count,
-    totalPages: Math.ceil(listed.count / perPage),
+    totalPages: Math.ceil(listed.count / size),
     content: listed.rows,
     currentPage: page,
   };
