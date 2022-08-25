@@ -11,18 +11,25 @@ module.exports = (sequelize, DataTypes) => {
             username: {
                 type: DataTypes.STRING,
                 allowNull: false,
-                unique: true
+                unique: true,
+                validate: {
+                    len: [4, 20],
+                }
             },
             full_name: {
                 type: DataTypes.STRING,
-                allowNull: false
+                allowNull: false,
+                validate: {
+                    len: [4, 30],
+                }
             },
             email: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 validate: {
                     isEmail: true 
-                }
+                },
+                unique: true
             },
             password: {
                 type: DataTypes.STRING,
@@ -43,11 +50,19 @@ module.exports = (sequelize, DataTypes) => {
                 defaultValue: false,
                 allowNull: false
             },
+            created_date: {
+                type: DataTypes.DATE,
+                allowNull: false,
+            },
+            updated_date: {
+                type: DataTypes.DATE,
+                allowNull: false,
+            },
         },
         {
-          timestamps: true,
-          createdAt: false, // don't add createdAt attribute
-          updatedAt: false,
+            timestamps: true,
+            createdAt: false, // don't add createdAt attribute
+            updatedAt: false,
         }
     );
 
