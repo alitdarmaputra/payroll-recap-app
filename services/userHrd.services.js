@@ -112,18 +112,16 @@ const listHrd = async(queries) => {
 	if (full_name)
 		conditions.full_name = { [Op.like]: `%${full_name}%` };
 	
-	const all_hrd = await user_hrd.findAll();
-
-	const hrd_list = await user_hrd.findAll({
+	const hrd_list = await user_hrd.findAndCountAll({
 		where: conditions,
-		limit: isNaN(size)? default_page : parseInt(size, 10),
-		offset: isNaN(page)? 0 : parseInt((page-1) * default_page, 10)
+		limit: parseInt(size, 10),
+		offset: parseInt((page-1) * default_page, 10)
 	});
 
 	return { 
-		totalData: hrd_list.length,
-		totalPages: Math.ceil(all_hrd.length/default_page), 
-		content: hrd_list,
+		totalData: hrd_list.count,
+		totalPages: Math.ceil(hrd_list.count/default_page), 
+		content: hrd_list.rows,
 		currentPage: isNaN(page)? 1 : page,
 	};
 }
