@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const ValidationError = require("../errors/ValidationError");
 const NotFoundError = require("../errors/NotFoundError");
 const ConflictError = require("../errors/ConflictError");
+const paginationDTO = require("../models/dto/pageResponse.dto"); 
 
 const addHrd = async({ username, full_name, email, password }) => {
 	if(typeof password == "string") {
@@ -107,7 +108,7 @@ const getHrd = async(id) => {
 }
 
 const listHrd = async(queries) => {
-	const default_page = 10;
+	const perPage = 10;
 	const { page = 1, size = default_page, full_name, ...conditions } = queries;
 	
 	if (full_name)
@@ -119,12 +120,7 @@ const listHrd = async(queries) => {
 		offset:parseInt((page-1) * default_page, 10)
 	});
 
-	return { 
-		totalData: hrd_list.count,
-		totalPages: Math.ceil(hrd_list.count/default_page), 
-		content: hrd_list.rows,
-		currentPage: isNaN(page)? 1 : page,
-	};
+	return paginationDTO(hrd_list, page, perPage);
 }
 
 module.exports = { addHrd, deleteHrd, editHrd, getHrd, listHrd };
