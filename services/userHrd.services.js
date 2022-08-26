@@ -108,8 +108,7 @@ const getHrd = async(id) => {
 }
 
 const listHrd = async(queries) => {
-	const perPage = 10;
-	const { page = 1, size = perPage, full_name, ...conditions } = queries;
+	const { page = 1, size = 10, full_name, ...conditions } = queries;
 	
 	if (full_name)
 		conditions.full_name = { [Op.like]: `%${full_name}%` };
@@ -117,10 +116,10 @@ const listHrd = async(queries) => {
 	const hrd_list = await user_hrd.findAndCountAll({
 		where: conditions,
 		limit: parseInt(size, 10),
-		offset:parseInt((page-1) * perPage, 10)
+		offset: parseInt((page-1) * size, 10)
 	});
 
-	return new paginationDTO(hrd_list, page, perPage);
+	return new paginationDTO(hrd_list, page, size);
 }
 
 module.exports = { addHrd, deleteHrd, editHrd, getHrd, listHrd };
