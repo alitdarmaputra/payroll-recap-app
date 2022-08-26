@@ -4,6 +4,8 @@ const { Op } = Sequelize;
 const bcrypt = require("bcrypt");
 const ValidationError = require("../errors/ValidationError");
 const NotFoundError = require("../errors/NotFoundError");
+const ConflictError = require("../errors/ConflictError");
+const paginationDTO = require("../models/dto/pageResponse.dto"); 
 
 const addHrd = async({ username, full_name, email, password }) => {
 	if(typeof password == "string") {
@@ -30,7 +32,7 @@ const addHrd = async({ username, full_name, email, password }) => {
 		const errors = err.errors;
 		errors.forEach(error => {
 			if (error.type == "unique violation") {
-				throw new ValidationError(
+				throw new ConflictError(
 					`This ${error.path} already used, try with another ${error.path}`
 				);
 			} else if (error.type == "notNull Violation") {
@@ -78,7 +80,7 @@ const editHrd = async(data_hrd) => {
 		const errors = err.errors;
 		errors.forEach((error) => {
 			if (error.type == "unique violation") {
-				throw new ValidationError(
+				throw new ConflictError(
 					`This ${error.path} already used, try with another ${error.path}`
 				);
 			} else if (error.type == "notNull Violation") {
@@ -106,26 +108,19 @@ const getHrd = async(id) => {
 }
 
 const listHrd = async(queries) => {
-	const default_page = 10;
-	const { page = 1, size = default_page, full_name, ...conditions } = queries;
+	const perPage = 10;
+	const { page = 1, size = perPage, full_name, ...conditions } = queries;
 	
 	if (full_name)
 		conditions.full_name = { [Op.like]: `%${full_name}%` };
 	
-	const all_hrd = await user_hrd.findAll();
-
-	const hrd_list = await user_hrd.findAll({
+	const hrd_list = await user_hrd.findAndCountAll({
 		where: conditions,
-		limit: isNaN(size)? default_page : parseInt(size, 10),
-		offset: isNaN(page)? 0 : parseInt((page-1) * default_page, 10)
+		limit: parseInt(size, 10),
+		offset:parseInt((page-1) * perPage, 10)
 	});
 
-	return { 
-		totalData: hrd_list.length,
-		totalPages: Math.ceil(all_hrd.length/default_page), 
-		content: hrd_list,
-		currentPage: isNaN(page)? 1 : page,
-	};
+	return new paginationDTO(hrd_list, page, perPage);
 }
 
 module.exports = { addHrd, deleteHrd, editHrd, getHrd, listHrd };
