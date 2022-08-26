@@ -1,11 +1,16 @@
+const NotFoundError = require('../errors/NotFoundError');
 const { user_employee, user_hrd, verification_token } = require('../models');
 
 const findHrd = async (email) => {
-  const result = await user_hrd.findOne({
-    where: { email }
-  });
+  try {
+    const result = await user_hrd.findOne({
+      where: { email }
+    });
 
-  return result;
+    return result;
+  } catch (err) {
+    return NotFoundError("HRD not Found");
+  }
 }
 
 const deleteToken = async (token) => {
