@@ -14,7 +14,7 @@ const login = async (req, res, next) => {
         if (!hrd) throw err;
 
         if (await bcrypt.compare(req.body.password, hrd.password)) {
-            const token = jwt.sign({"id": hrd.id}, process.env.JWTKEY, { expiresIn: '1h' });
+            const token = jwt.sign({"id": hrd.id, "full_name": hrd.full_name}, process.env.JWTKEY, { expiresIn: '1h' });
             authServices.addToken(token, hrd.id);
 
             return res.status(200).json({
@@ -56,7 +56,7 @@ const signup = async (req, res, next) => {
     try {
         const hrd = await HrdServices.addHrd(req.body);
 
-        const token = jwt.sign({"id": hrd.id}, process.env.JWTKEY);
+        const token = jwt.sign({"id": hrd.id, "full_name": hrd.full_name}, process.env.JWTKEY);
         authServices.addToken(token, hrd.id);
 
         return res.status(200).json({

@@ -12,11 +12,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "devDependencies": {
+    "jest": "^29.0.1",
     "nodemon": "^2.0.19",
     "sequelize-cli": "^6.4.1"
   },
   "scripts": {
-    "start-dev": "nodemon app"
+    "start-dev": "nodemon app",
+	"test": "jest"
   },
   "keywords": [],
   "author": "",
