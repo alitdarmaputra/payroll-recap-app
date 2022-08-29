@@ -3,6 +3,9 @@ const { user_employee } = require("../models");
 const ValidationError = require("../errors/ValidationError");
 const NotFoundError = require("../errors/NotFoundError");
 const ConflictError = require("../errors/ConflictError");
+
+const paginationDTO = require("../models/dto/pageResponse.dto");
+
 const { Op } = Sequelize;
 
 const createEmployee = async ({ full_name, email, salary }) => {
@@ -88,14 +91,7 @@ const listEmployee = async (queries, { page, size }) => {
     offset: size * (page - 1),
   });
 
-  const result = {
-    totalData: listed.count,
-    totalPages: Math.ceil(listed.count / size),
-    content: listed.rows,
-    currentPage: page,
-  };
-
-  return result;
+  return new paginationDTO(listed, page, size);
 };
 
 const showEmployee = async (id) => {
