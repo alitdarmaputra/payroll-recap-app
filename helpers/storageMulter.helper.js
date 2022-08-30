@@ -7,7 +7,6 @@ const storage = multer.diskStorage({
 	},
 	filename: (req, file, cb) => {
 		const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-		console.log("Tipe file adalah", file.mimetype);
 		cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
 	}
 });
