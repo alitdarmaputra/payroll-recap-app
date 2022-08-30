@@ -3,8 +3,26 @@ const { recap_data } = require("../models");
 const ValidationError = require("../errors/ValidationError");
 const NotFoundError = require("../errors/NotFoundError");
 
+const Months = {
+	JANUARY: 1,
+	FEBRUARY: 2,
+	MARET: 3,
+	APRIL: 4,
+	MAY: 5,
+	JUNE: 6,
+	JULY: 7,
+	AUGUST: 8,
+	SEPTEMBER: 9,
+	OCTOBER: 10,
+	NOVEMBER: 11,
+	DECEMBER: 12 
+}
+
 const addRecap = async (new_recap, { full_name }) => {
 	let { claim_type, claim_name, claim_description, nominal, period_month, period_year, employee_id } = new_recap;
+	
+	// Convert month string to number
+	period_month = Months[period_month.toUpperCase()];
 
 	// Check if employee exist
 	const employee = await user_employee.findByPk(employee_id);
