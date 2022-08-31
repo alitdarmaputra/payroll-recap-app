@@ -48,8 +48,6 @@ module.exports = {
     dialect: process.env.DB_PROD_DIALECT,
     port: process.env.DB_PROD_PORT,
     pool: {
-      max: 5,
-      min: 0,
       acquire: 30000,
       idle: 10000,
     },
