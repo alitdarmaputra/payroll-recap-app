@@ -4,8 +4,6 @@ const { verifyToken } = require("../middleware/userAuth.middleware");
 const upload = require("../middleware/fileUpload.middleware");
 
 router.post("/", verifyToken, recapController.addRecap);
-router.post("/file", verifyToken, upload.single("recap_data"), (req, res, next) => {
-	res.send("Success");
-} );
+router.post("/file", verifyToken, upload.single("recap_data"), recapController.addRecapFile);
 
 module.exports = router;
