@@ -4,6 +4,6 @@ const { verifyToken } = require('../middleware/userAuth.middleware');
 
 const router = express.Router();
 
-router.get('/', totalClaimController.totalClaim);
+router.get('/', verifyToken, totalClaimController.totalClaim);
 
 module.exports = router;
