@@ -46,13 +46,7 @@ const downloadRecap = async (req, res, next) => {
 
 		// convert recap to excel then download
 		const recapExcel = await totalClaimServices.convertToExcel(recap);
-
-		// res.status(200).json({
-		// 	statusCode: 200,
-		// 	success: true,
-		// 	message: 'Success download recap data',
-		// 	data: recapExcel,
-		// });
+		
 		res.download(recapExcel)
 	} catch (err) {
 		next(err);
