@@ -1,4 +1,4 @@
-const totalClaimServices = require("../services/totalClaim.services");
+const totalClaimServices = require('../services/totalClaim.services');
 
 const totalClaim = async (req, res, next) => {
 	try {
@@ -15,6 +15,52 @@ const totalClaim = async (req, res, next) => {
 	}
 };
 
+const showRecap = async (req, res, next) => {
+	try {
+		const { period_start = 1, period_end = 12, ...queries } = req.query;
+
+		const recap = await totalClaimServices.recapClaim(queries, {
+			period_start,
+			period_end,
+		});
+
+		res.status(200).json({
+			statusCode: 200,
+			success: true,
+			message: 'Success get recap data',
+			data: recap,
+		});
+	} catch (err) {
+		next(err);
+	}
+};
+
+const downloadRecap = async (req, res, next) => {
+	try {
+		const { period_start = 1, period_end = 12, ...queries } = req.query;
+
+		const recap = await totalClaimServices.recapClaim(queries, {
+			period_start,
+			period_end,
+		});
+
+		// convert recap to excel then download
+		const recapExcel = await totalClaimServices.convertToExcel(recap);
+
+		// res.status(200).json({
+		// 	statusCode: 200,
+		// 	success: true,
+		// 	message: 'Success download recap data',
+		// 	data: recapExcel,
+		// });
+		res.download(recapExcel)
+	} catch (err) {
+		next(err);
+	}
+};
+
 module.exports = {
 	totalClaim,
+	showRecap,
+	downloadRecap,
 };
