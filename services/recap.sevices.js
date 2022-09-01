@@ -21,18 +21,28 @@ function toIntMonth(strMonth) {
 		NOVEMBER: 11,
 		DECEMBER: 12 
 	}
-	return Months[strMonth.toUpperCase()];
+
+	return Months[strMonth?.toUpperCase()];
 }
 
 const addRecap = async (new_recap, { full_name }, t = null) => {
 	let { claim_type, claim_name, claim_description, nominal, period_month, period_year, employee_id } = new_recap;
 	
-	claim_type = claim_type.toUpperCase();
-
+	// Check is valid input
 	// Convert month string to number
 	period_month = toIntMonth(period_month); 
 
-	// Check if employee exist
+	if(!claim_type || !claim_name || !claim_description || isNaN(nominal) || !period_month || isNaN(period_year) || isNaN(employee_id))
+		throw new ValidationError("Invalid input body");
+	
+	claim_type = claim_type.toUpperCase();
+
+	const claim_options = ["TAX", "HEALTH", "WELLNESS", "DEDUCTION"];
+
+	if(!claim_options.includes(claim_type))
+		throw new ValidationError("Invalid claim_type input");
+
+	// Check is employee exist
 	const employee = await user_employee.findByPk(employee_id);
 	
 	if(!employee)
@@ -40,24 +50,27 @@ const addRecap = async (new_recap, { full_name }, t = null) => {
 	
 	// Check is valid claim
 	nominal = parseFloat(nominal);
+	let remaining = parseFloat(employee.salary);	
 
-	let totalSalary = parseFloat(employee.salary) + (claim_type == "HEALTH" || claim_type == "WELLNESS"? -nominal : nominal );
+	if(claim_type == "HEALTH" || claim_type == "WELLNESS")
+		remaining = remaining - nominal;
 
 	const claimHistories = await recap_data.findAll({
 		where: {
 			employee_id,
-			period_year: parseInt(period_year),
-			period_month: period_month
+			period_year
 		}, 
 		transaction: t
 	});
 	
 	claimHistories.forEach(history => {
-		const historyNominal = parseFloat(history.dataValues.nominal);
-		totalSalary = totalSalary + ((history.dataValues.claim_type == "HEALTH" || history.dataValues.type == "WELLNESS" ? -historyNominal : historyNominal ));
+		if(history.dataValues.claim_type == "HEALTH" || history.dataValues.claim_type == "WELLNESS") {
+			const historyNominal = parseFloat(history.dataValues.nominal);
+			remaining = remaining - historyNominal;
+		}
 	});
 		
-	if(totalSalary < 0) 
+	if(remaining < 0) 
 		throw new ValidationError("Not enough salary for user_employee with id " + new_recap.employee_id);
 
 	try {
