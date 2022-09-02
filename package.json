@@ -19,7 +19,8 @@
     "sequelize-cli": "^6.4.1"
   },
   "scripts": {
-    "start-dev": "nodemon app",
+    "start": "NODE_ENV=production nodemon app",
+    "start-dev": "NODE_ENV=development nodemon app",
     "test": "jest"
   },
   "keywords": [],

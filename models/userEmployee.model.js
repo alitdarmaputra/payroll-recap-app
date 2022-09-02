@@ -43,5 +43,13 @@ module.exports = (sequelize, DataTypes) => {
       updatedAt: false,
     }
   );
+
+  // associate user_employee with recap_data
+  UserEmployee.associate = (models) => {
+    UserEmployee.hasMany(models.recap_data, {
+      foreignKey: "employee_id",
+    });
+  }
+
   return UserEmployee;
 };
