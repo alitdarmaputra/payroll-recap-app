@@ -8,6 +8,24 @@ const fs = require('fs');
 const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 
+function toStrMonth(intMonth) {
+	const Months = {
+		1: 'JANUARY',
+		2: 'FEBRUARY',
+		3: 'MARCH',
+		4: 'APRIL',
+		5: 'MAY',
+		6: 'JUNE',
+		8: 'JULY',
+		9: 'AUGUST',
+		10: 'SEPTEMBER',
+		11: 'OCTOBER',
+		12: 'NOVEMBER',
+		13: 'DECEMBER',
+	};
+	return Months[intMonth];
+}
+
 const totalClaimNominal = async ({
 	employee_id,
 	period_start,
@@ -69,22 +87,19 @@ const recapClaim = async (queries, { period_start, period_end }) => {
 			'employee_id',
 			'period_month',
 			'period_year',
-			[sequelize.fn('sum', sequelize.col('nominal')), 'reimbursement'],
+			'claim_type',
+			[sequelize.fn('sum', sequelize.col('nominal')), 'total_claim'],
 		],
-		group: ['employee_id', 'period_month', 'period_year'],
+		group: ['employee_id', 'period_month', 'period_year', 'claim_type'],
 		where: {
 			...condition,
 			period_month: {
 				[Op.between]: [period_start, period_end],
 			},
-			claim_type: {
-				[Op.or]: ['HEALTH', 'WELLNESS'],
-			},
 		},
 	});
 
 	const employee = await user_employee.findAll();
-
 	const dataEmployee = employee.map((item) => {
 		return {
 			employee_id: item.employee_id,
@@ -94,33 +109,89 @@ const recapClaim = async (queries, { period_start, period_end }) => {
 		};
 	});
 
-	const populate = recap.map(async ({ dataValues: data }) => {
-		// const employee = await user_employee.findByPk(data.employee_id);
-		const indexEmployee = employee.findIndex(
-			(emp) => emp.id === data.employee_id
-		);
+	const findedUser = [];
 
-		dataEmployee[indexEmployee].salary =
-			dataEmployee[indexEmployee].salary - data.reimbursement;
-		return {
-			employee_id: data.employee_id,
-			employee_name: dataEmployee[indexEmployee].full_name,
-			salary: parseFloat(dataEmployee[indexEmployee].constant_salary),
-			reimbursement: parseFloat(data.reimbursement),
-			recap_date: new Date(),
-			// remaining_claim_limit: salary_remaining - data.reimbursement,
-			remaining_claim_limit: dataEmployee[indexEmployee].salary,
-			period_month: data.period_month,
-			period_year: data.period_year,
-			total_salary:
-				parseFloat(dataEmployee[indexEmployee].constant_salary) +
-				parseFloat(data.reimbursement),
-		};
+	recap.forEach((item) => {
+		if (!findedUser.includes(item.employee_id)) {
+			findedUser.push(item.employee_id);
+		}
 	});
 
-	const data = await Promise.all(populate);
+	const populate = [];
 
-	return data;
+	await Promise.all(
+		recap.map(async ({ dataValues: data }) => {
+			const indexEmployee = employee.findIndex(
+				(emp) => emp.id === data.employee_id
+			);
+
+			const isUserExist = populate.find(
+				(item) =>
+					item?.employee_id === data.employee_id &&
+					item?.period_month === toStrMonth(data.period_month) &&
+					item?.period_year === data.period_year
+			);
+
+			if (!isUserExist) {
+				populate.push({
+					employee_id: data.employee_id,
+					period_month: toStrMonth(data.period_month),
+					period_year: data.period_year,
+				});
+			}
+
+			const userIndex = populate.findIndex(
+				(item) =>
+					item?.employee_id === data.employee_id &&
+					item?.period_month === toStrMonth(data.period_month) &&
+					item?.period_year === data.period_year
+			);
+
+			const currentUserPopulate = populate[userIndex];
+
+			let total_reimbursement = currentUserPopulate?.reimbursement || 0;
+			let tax = currentUserPopulate?.tax || 0;
+			let deduction = currentUserPopulate?.deduction || 0;
+
+			if (data.claim_type == 'HEALTH' || data.claim_type == 'WELLNESS') {
+				dataEmployee[indexEmployee].salary =
+					dataEmployee[indexEmployee].salary - data.total_claim;
+				total_reimbursement =
+					parseFloat(total_reimbursement) + parseFloat(data.total_claim);
+			}
+
+			if (data.claim_type == 'TAX') {
+				tax = parseFloat(tax) + parseFloat(data.total_claim);
+			}
+
+			if (data.claim_type == 'DEDUCTION') {
+				deduction = parseFloat(deduction) + parseFloat(data.total_claim);
+			}
+
+			const result = {
+				employee_id: data.employee_id,
+				employee_name: dataEmployee[indexEmployee].full_name,
+				period_month: toStrMonth(data.period_month),
+				period_year: data.period_year,
+				salary: parseFloat(dataEmployee[indexEmployee].constant_salary),
+				// claim_type: data.claim_type,
+				reimbursement: total_reimbursement,
+				tax,
+				deduction,
+				remaining_claim_limit: dataEmployee[indexEmployee].salary,
+				total_salary:
+					parseFloat(dataEmployee[indexEmployee].constant_salary) +
+					parseFloat(total_reimbursement) -
+					parseFloat(tax) -
+					parseFloat(deduction),
+				recap_date: new Date(),
+			};
+
+			populate[userIndex] = result;
+		})
+	);
+
+	return populate;
 };
 
 const convertToExcel = async (data) => {
