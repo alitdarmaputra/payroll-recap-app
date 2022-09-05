@@ -7,7 +7,7 @@ const errorHandler = require("./helpers/errorHandler.helper");
 const cron = require("node-cron");
 const sendReports = require("./services/report.services");
 
-cron.schedule("* 8 29 * *", async() => {
+cron.schedule("* 8 25 * *", async() => {
 	// Send email on 29th at 8 am every months
 	await sendReports();
 });
