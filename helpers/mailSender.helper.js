@@ -16,11 +16,11 @@ const createTransporter = async() => {
 	return transporter;
 }
 
-const renderEmail = ({ full_name }) => {
+const renderEmail = ({ employee_name}) => {
 	return `
 	<h1>Monthly Payroll Report</h1>
 	<hr>
-	<h2><b>Hello, ${ full_name }</b></h2>
+	<h2><b>Hello, ${ employee_name }</b></h2>
 	<br>
 	<p>Here is your payroll report on ${ new Date().toLocaleDateString() }</p>
 	`
