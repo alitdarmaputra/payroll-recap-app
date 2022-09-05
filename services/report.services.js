@@ -1,7 +1,8 @@
 const { user_employee, recap_data } = require("../models");
 const sequelize = require('sequelize')
-const PDFDocument = require("pdfkit");
+const PDFDocument = require("pdfkit-table");
 const fs = require("fs");
+const { Op } = require("sequelize");
 
 const sendReports = async () => {
 	// Get All User
@@ -130,24 +131,91 @@ const sendReports = async () => {
 	populate.forEach((item) => {
         const doc = new PDFDocument();
         doc.pipe(fs.createWriteStream(`public/payrollReport-${item.employee_id}-${new Date().getMonth()+1}-${new Date().getFullYear()}.pdf`));
-        doc
-            .fontSize(25)
-            .text("Payroll Report", 100, 80)
-            .fontSize(15)
-            .text(`Employee ID: ${item.employee_id}`, 100, 150)
-            .text(`Employee Name: ${item.employee_name}`, 100, 170)
-            .text(`Period: ${item.period_month} ${item.period_year}`, 100, 190)
-            .text(`Salary: Rp. ${item.salary}`, 100, 210)
-            .text(`Reimbursement: Rp. ${item.reimbursement}`, 100, 230)
-            .text(`Tax: Rp. ${item.tax}`, 100, 250)
-            .text(`Deduction: Rp. ${item.deduction}`, 100, 270)
-            .text(`Remaining Claim Limit: Rp. ${item.remaining_claim_limit}`, 100, 290)
-            .text(`Total Salary: Rp. ${item.total_salary}`, 100, 310)
-            .text(`Recap Date: ${item.recap_date}`, 100, 330)
-            .end();
-	
-		send_email_worker.postMessage(item);
-    })
+
+		;(async function createTable(){
+			// table
+			const header ={
+			  title: `Payroll Report per ${currentMonth}/${currentYear}`,
+			  subtitle: `Employee: ${item.employee_id} - ${item.employee_name}         Recap Date: ${item.recap_date}`,
+			  headers:[' ']
+			}
+			
+			await doc.table(header, { hideHeader: true });
+			doc.moveDown();
+
+			// Create salary table
+			const table_salary = { 
+			  subtitle: `Total Salary`, 
+				headers: [
+					{ label:"Type", property: 'type', renderer: null },
+					{ label:"Nominal", property: 'nominal', renderer: null },
+				],
+				datas: [
+					{ type: "Salary", nominal: `${item.salary}` },
+					{ type: "Reimbursement", nominal: `${item.reimbursement}` },
+					{ type: "total salary", nominal: `${item.total_salary}` }
+				],
+			};
+
+			await doc.table(table_salary);
+			doc.moveDown();
+
+			// Create deduction table
+			const user_deduction = await recap_data.findAll({
+				where: {
+					id: item.employee_id,
+					period_month: currentMonth,
+					period_year: currentYear,
+					claim_type: {
+						[Op.or]: ['TAX', 'DEDUCTION']
+					}
+				}
+			});
+			
+			const deduction_datas = user_deduction?.dataValues?.map(data => {
+				return {
+					type: data.claim_type,
+					desc: data.claim_description,
+					nominal: data.nominal
+				}
+			}) || [];
+			
+			deduction_datas.push({ type: "Total deduction", desc: "", nominal: item.deduction });
+			
+			const table_deduction = { 
+			  subtitle: `Total Deduction`, 
+				headers: [
+					{ label:"Type", property: 'type', renderer: null },
+					{ label:"Desc", property: 'desc', renderer: null },
+					{ label:"Nominal", property: 'nominal', renderer: null },
+				],
+				datas: deduction_datas,
+			};	
+			
+			await doc.table(table_deduction);
+			doc.moveDown();
+			
+			const table_accepted = { 
+			  subtitle: `End Total`, 
+				headers: [
+					{ label:"Type", property: 'type', renderer: null },
+					{ label:"Nominal", property: 'nominal', renderer: null },
+				],
+				datas: [{
+					type: "Total Accepted (salary + reimbursement - deduction)",
+					nominal: item.total_salary
+				}, {
+					type: "Remaining Claim",
+					nominal: item.remaining_claim_limit
+				}],
+			};
+		
+			await doc.table(table_accepted);
+			doc.end();
+
+			send_email_worker.postMessage(item);
+		})();
+	})
 	
 	send_email_worker.addListener("message", message => {
 		console.log(message);
