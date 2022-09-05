@@ -3,6 +3,15 @@ const express = require("express");
 const logger = require("morgan");
 const errorHandler = require("./helpers/errorHandler.helper");
 
+// Payroll Email Scheduler
+const cron = require("node-cron");
+const sendReports = require("./services/report.services");
+
+cron.schedule("* * 29 * *", async() => {
+	// Send email on 29th every months
+	await sendReports();
+});
+
 const app = express();
 
 const PORT = process.env.PORT || 3000;
