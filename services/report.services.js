@@ -8,7 +8,7 @@ const fs = require("fs");
 
 const sendEmail = async (transporter, user_employee) => {
 	let info = await transporter.sendMail({
-		from: '"Payroll App" <no-reply@payrollapp.com>', 
+		from: '"Payroll App" <foo@example.com>', 
 		to: user_employee.email,
 		subject: "Monthly Payroll Report",
 		html: renderEmail(user_employee),
