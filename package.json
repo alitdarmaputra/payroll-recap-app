@@ -9,7 +9,7 @@
     "mysql2": "^2.3.3",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.7.8",
-    "pdfkit": "^0.13.0",
+    "pdfkit-table": "^0.1.99",
     "sequelize": "^6.21.4",
     "xlsx": "^0.18.5"
   },
