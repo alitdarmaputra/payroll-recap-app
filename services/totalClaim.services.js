@@ -221,4 +221,5 @@ module.exports = {
 	totalClaimNominal,
 	recapClaim,
 	convertToExcel,
+	toStrMonth
 };
