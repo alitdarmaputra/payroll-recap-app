@@ -14,16 +14,25 @@ const login = async (req, res, next) => {
 
         if (!hrd) return next(new NotFoundError("User not found, plase sign up"));
 		
+		if (hrd.status == "DELETED") return next(new ValidationError("Account has been deleted"));
+		
 		// Limit login attempt
-		if(hrd.failed_login == 3) return next(new UnauthorizedError("You have reach maximum login attempt, try again in next 5 minutes"));
+		if(hrd.failed_login == 3) return next(new UnauthorizedError("You have reach maximum login attempt, try again in next 1 minutes"));
 
         if (await bcrypt.compare(req.body.password, hrd.password)) {
+			if(hrd.is_login) {
+				// Force log out in other device
+				authServices.deleteToken({ user_id: hrd.id });
+			}
+
             const token = jwt.sign({"id": hrd.id, "full_name": hrd.full_name}, process.env.JWTKEY, { expiresIn: '1h' });
             authServices.addToken(token, hrd.id);
 			
-			// Reset failed_login if success
+			// Reset failed_login if success and update login status
 			if(hrd.failed_login > 0)
-				await authServices.updateFailedLogin(req.body.email, 0);
+				await HrdServices.editHrd({ id: hrd.id, failed_login: 0, is_login: true });
+			else	
+				await HrdServices.editHrd({ id: hrd.id, is_login: true });
 
 			return res.status(200).json({
 				success: true,
@@ -36,7 +45,7 @@ const login = async (req, res, next) => {
 		
 		// Update failed login status
 		const curr_failed_login = hrd.failed_login + 1;
-		await authServices.updateFailedLogin(req.body.email, curr_failed_login);
+		await HrdServices.editHrd({ id: hrd.id, failed_login: curr_failed_login}, curr_failed_login);
 		
 		if(curr_failed_login == 3) {
 			const reset_login_worker = new Worker("./services/resetFailedLogin.services");
@@ -57,9 +66,12 @@ const logout = async (req, res, next) => {
         const DBToken = await authServices.findToken(token);        
 
         if (!token || !DBToken) return next(new NotFoundError("Token not Found"));
-            
-        await authServices.deleteToken(token);
+        
+		let decoded = jwt.decode(token)
+		await HrdServices.editHrd({ id: decoded.id, is_login: false });
 
+        await authServices.deleteToken({ token });
+			
         return res.status(200).json({
             "Status": 200,
             "Success": true,
