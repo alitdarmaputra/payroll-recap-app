@@ -1,4 +1,5 @@
 const { user_employee, recap_data } = require("../models");
+const { toStrMonth } = require("./totalClaim.services");
 const sequelize = require('sequelize')
 const PDFDocument = require("pdfkit-table");
 const fs = require("fs");
@@ -112,7 +113,7 @@ const sendReports = async () => {
 				tax,
 				deduction,
 				remaining_claim_limit: dataEmployee[indexEmployee].salary,
-				total_salary:
+				total_accepted:
 					parseFloat(dataEmployee[indexEmployee].constant_salary) +
 					parseFloat(total_reimbursement) -
 					parseFloat(tax) -
@@ -135,7 +136,7 @@ const sendReports = async () => {
 		;(async function createTable(){
 			// table
 			const header ={
-			  title: `Payroll Report per ${currentMonth}/${currentYear}`,
+			  title: `Payroll Report per ${toStrMonth(currentMonth)}/${currentYear}`,
 			  subtitle: `Employee: ${item.employee_id} - ${item.employee_name}         Recap Date: ${item.recap_date}`,
 			  headers:[' ']
 			}
@@ -153,7 +154,7 @@ const sendReports = async () => {
 				datas: [
 					{ type: "Salary", nominal: `${item.salary}` },
 					{ type: "Reimbursement", nominal: `${item.reimbursement}` },
-					{ type: "total salary", nominal: `${item.total_salary}` }
+					{ type: "total salary", nominal: `${item.salary + item.reimbursement}` }
 				],
 			};
 
@@ -163,7 +164,7 @@ const sendReports = async () => {
 			// Create deduction table
 			const user_deduction = await recap_data.findAll({
 				where: {
-					id: item.employee_id,
+					employee_id: item.employee_id,
 					period_month: currentMonth,
 					period_year: currentYear,
 					claim_type: {
@@ -171,16 +172,16 @@ const sendReports = async () => {
 					}
 				}
 			});
-			
-			const deduction_datas = user_deduction?.dataValues?.map(data => {
+
+			const deduction_datas = user_deduction?.map(data => {
 				return {
-					type: data.claim_type,
-					desc: data.claim_description,
-					nominal: data.nominal
+					type: data.dataValues.claim_type,
+					desc: data.dataValues.claim_description,
+					nominal: data.dataValues.nominal
 				}
 			}) || [];
-			
-			deduction_datas.push({ type: "Total deduction", desc: "", nominal: item.deduction });
+
+			deduction_datas.push({ type: "Total deduction", desc: "", nominal: item.deduction + item.tax });
 			
 			const table_deduction = { 
 			  subtitle: `Total Deduction`, 
@@ -203,7 +204,7 @@ const sendReports = async () => {
 				],
 				datas: [{
 					type: "Total Accepted (salary + reimbursement - deduction)",
-					nominal: item.total_salary
+					nominal: item.total_accepted
 				}, {
 					type: "Remaining Claim",
 					nominal: item.remaining_claim_limit
