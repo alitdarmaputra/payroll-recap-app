@@ -16,12 +16,12 @@ function toStrMonth(intMonth) {
 		4: 'APRIL',
 		5: 'MAY',
 		6: 'JUNE',
-		8: 'JULY',
-		9: 'AUGUST',
-		10: 'SEPTEMBER',
-		11: 'OCTOBER',
-		12: 'NOVEMBER',
-		13: 'DECEMBER',
+		7: 'JULY',
+		8: 'AUGUST',
+		9: 'SEPTEMBER',
+		10: 'OCTOBER',
+		11: 'NOVEMBER',
+		12: 'DECEMBER',
 	};
 	return Months[intMonth];
 }
@@ -97,6 +97,11 @@ const recapClaim = async (queries, { period_start, period_end }) => {
 				[Op.between]: [period_start, period_end],
 			},
 		},
+		order: [
+			['employee_id', 'ASC'],
+			['period_year', 'ASC'],
+			['period_month', 'ASC'],
+		],
 	});
 
 	const employee = await user_employee.findAll();
@@ -195,7 +200,10 @@ const recapClaim = async (queries, { period_start, period_end }) => {
 };
 
 const convertToExcel = async (data) => {
-	const fileName = `recap-${Date.now()}.xlsx`;
+	const today = new Date();
+	const month = toStrMonth(today.getMonth() + 1);
+	const date = `${today.getDate()}-${month}-${today.getFullYear()}`;
+	const fileName = `recap-${date}.xlsx`;
 
 	// if directory not exist, create it
 	if (!fs.existsSync('public')) {
