@@ -1,5 +1,5 @@
 const NotFoundError = require('../errors/NotFoundError');
-const { user_employee, user_hrd, verification_token } = require('../models');
+const { user_hrd, verification_token } = require('../models');
 
 const findHrd = async (email) => {
   try {
@@ -13,10 +13,10 @@ const findHrd = async (email) => {
   }
 }
 
-const deleteToken = async (token) => {
+const deleteToken = async (condition) => {
   try {
     await verification_token.destroy({
-      where: { token }
+      where: condition
     });
 
     return result;
