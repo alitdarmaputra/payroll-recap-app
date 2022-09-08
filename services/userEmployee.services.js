@@ -15,7 +15,7 @@ const createEmployee = async ({ full_name, email, salary }) => {
     created_date: new Date(),
     updated_date: new Date(),
     status: "ACTIVE",
-    salary: parseInt(salary, 10),
+    salary: parseFloat(salary),
   };
 
   try {
@@ -45,7 +45,7 @@ const editEmployee = async ({ full_name, email, salary, id }) => {
     full_name,
     email,
     updated_date: new Date(),
-    salary: parseInt(salary, 10),
+    salary: parseFloat(salary),
   };
 
   const employee = await user_employee.findByPk(id);
