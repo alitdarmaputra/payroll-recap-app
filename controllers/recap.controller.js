@@ -29,4 +29,17 @@ const addRecapFile = async (req, res, next) => {
 	}
 }
 
-module.exports = { addRecap, addRecapFile };
+const listRecap = async(req, res, next) => {
+	try {
+		const recaps = await recapServices.listRecap(req.query);
+		res.status(200).json({
+			statusCode: 200,
+			success: true,
+			message: "Sucess list recap",
+			data: recaps 
+		});
+	} catch(err) {
+		return next(err);
+	}
+} 
+module.exports = { addRecap, addRecapFile, listRecap };

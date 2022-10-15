@@ -5,6 +5,7 @@ const NotFoundError = require("../errors/NotFoundError");
 const XLSX = require("xlsx");
 const path = require("path");
 const sequelize = require("../models/index").sequelize;
+const paginationDTO = require("../models/dto/pageResponse.dto"); 
 
 function toIntMonth(strMonth) {
 	const Months = {
@@ -114,4 +115,22 @@ const addRecapFile = async (file_path, user) => {
 	}	
 }
 
-module.exports = { addRecap, addRecapFile };
+const listRecap = async(queries) => {
+	const { page = 1, size = 10, full_name, ...conditions } = queries;
+	
+	if (full_name)
+		conditions.full_name = { [Op.like]: `%${full_name}%` };
+	
+	const recap_list = await recap_data.findAndCountAll({
+		where: conditions,
+		limit: parseInt(size, 10),
+		offset: parseInt((page-1) * size, 10),
+		include: [{
+			model: user_employee,
+			required: true 
+		}]
+	});
+
+	return new paginationDTO(recap_list, page, size);
+}
+module.exports = { addRecap, addRecapFile, listRecap };
