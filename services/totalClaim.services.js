@@ -72,6 +72,9 @@ const totalClaimNominal = async ({
 
 const recapClaim = async (queries, { period_start, period_end }) => {
 	const condition = {};
+
+	if(!queries.period_year) queries.period_year = new Date().getFullYear();
+
 	Object.keys(queries).forEach((query) => {
 		condition[query] = { [Op.like]: `%${queries[query]}%` };
 	});
