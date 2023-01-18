@@ -1,4 +1,6 @@
 require("dotenv").config();
+const cors = require('cors');
+const corsOption = require('./config/cors.config');
 const express = require("express");
 const logger = require("morgan");
 const errorHandler = require("./helpers/errorHandler.helper");
@@ -18,6 +20,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(logger("dev"));
 app.use(express.json());
+app.use(cors())
 app.use(express.urlencoded({ extended: false }));
 
 const indexRouter = require("./routes/index.routes");
